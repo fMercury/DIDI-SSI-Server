@@ -1,8 +1,8 @@
 const didJWT = require("did-jwt");
 
 // wallet with tokens for testing purposes
-const ISSUER_SERVER_DID = "did:ethr:0x0d0fa2cd3813412e94597103dbf715c7afb8c038";
-const ISSUER_SERVER_PRIVATE_KEY = "4c0c24449175ed5dc0e4132a6581a32bb9ac89e120a3ba328dbb062545627685";
+const ISSUER_SERVER_DID = "did:ethr:0x3ce787e8bec093b282a6438f2aa3241d6754646a";
+const ISSUER_SERVER_PRIVATE_KEY = "748ebb0b11bd204994db36857c7e89fea903ab579c1145a4a5fc10f041abdb9e";
 
 const signer = didJWT.SimpleSigner(ISSUER_SERVER_PRIVATE_KEY);
 

@@ -10,18 +10,17 @@ const Tx = require("ethereumjs-tx");
 // const BLOCK_CHAIN_URL = "http://45.79.252.246:4545" // Lacchain
 // const BLOCK_CHAIN_URL = "http://writer.lacchain.net:4545"; // Lacchain
 // const BLOCK_CHAIN_URL = "https://public-node.testnet.rsk.co" // RSK
+const BLOCK_CHAIN_URL = "http://50.116.46.247:8545" // BFA
 
-// uPort SC in RSK and Eth
-// const BLOCK_CHAIN_CONTRACT = "0xdca7ef03e98e0dc2b855be647c39abe984fcf21b";
-
-// uPort SC in Lacchain
-// const BLOCK_CHAIN_CONTRACT = "0x488C83c4D1dDCF8f3696273eCcf0Ff4Cf54Bf277" // Lacchain
+// const BLOCK_CHAIN_CONTRACT = "0xdca7ef03e98e0dc2b855be647c39abe984fcf21b"; 	// uPort SC in RSK and Eth
+// const BLOCK_CHAIN_CONTRACT = "0x488C83c4D1dDCF8f3696273eCcf0Ff4Cf54Bf277" 	// uPort SC in Lacchain
+const BLOCK_CHAIN_CONTRACT = "0x0b2b8e138c38f4ca844dc79d4c004256712de547" 		// uPort SC in BFA
 
 // wallet with tokens for testing purposes
 const DIDI_SERVER_DID = "0x0d0fa2cd3813412e94597103dbf715c7afb8c038";
-const DIDI_SERVER_PRIVATE_KEY = "4c0c24449175ed5dc0e4132a6581a32bb9ac89e120a3ba328dbb062545627685";
+const DIDI_SERVER_PRIVATE_KEY = "748ebb0b11bd204994db36857c7e89fea903ab579c1145a4a5fc10f041abdb9e";
 
-const ISSUER_SERVER_DID = "<CHANGE_ME>"; // generate this using create-did.js
+const ISSUER_SERVER_DID = "0x3ce787e8bec093b282a6438f2aa3241d6754646a"; // generate this using create-did.js (remove the "did:ethr:")
 
 const DELEGATE_DURATION = 1300000;
 
@@ -40,10 +39,21 @@ function getContract(credentials) {
 
 // realiza una transaccion generica a un contrato ethereum
 async function makeSignedTransaction(bytecode, credentials) {
-	const nonce = await web3.eth.getTransactionCount(credentials.from, "pending");
+	
+	let nonce;
+	// const nonce = await web3.eth.getTransactionCount(credentials.from, "pending");
+	web3.eth.getTransactionCount(credentials.from, (err, txCount) => {
+		if (err) {
+      console.log("Error1");
+      return (err);
+		};
+		
+		nonce = web3.utils.toHex(txCount);
+	});
 
   const block = await web3.eth.getBlock("latest");
   const gasPrice = Math.max(21000, Number(block.minimumGasPrice)); // RSK config (but works on Lacchain too)
+//   const gasPrice = web3.utils.toHex(web3.utils.toWei('1000', 'gwei'));
   
   const gas = await web3.eth.estimateGas({
     to: BLOCK_CHAIN_CONTRACT,
@@ -59,14 +69,24 @@ async function makeSignedTransaction(bytecode, credentials) {
 		to: BLOCK_CHAIN_CONTRACT
 	};
 
-	console.log(rawTx);
+	console.log('rawTx ==> ',rawTx);
 
 	const tx = new Tx(rawTx);
 	tx.sign(Buffer.from(credentials.key, "hex"));
 	const serializedTx = tx.serialize();
-	const res = await web3.eth.sendSignedTransaction("0x" + serializedTx.toString("hex"));
+	
+	const res = await web3.eth.sendSignedTransaction("0x" + serializedTx.toString("hex"));	
+
+	// const raw = "0x" + serializedTx.toString("hex");
+	// const res = await web3.eth.sendSignedTransaction(raw, (err, tx_hash) => {
+	// 	if (err) {
+  	//     console.log("Error2");
+  	//     return (err);
+	// 	};
+	// });
+
 	return res;
-}
+};
 
 // realiza una delegacion de "DIDI_SERVER_DID" a "ISSUER_SERVER_DID"
 async function addDelegate() {
